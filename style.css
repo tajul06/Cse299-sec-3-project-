@@ -9,7 +9,7 @@ body {
     height: 100vh;
 }
 
-.registration-container {
+.login-container {
     background-color: #fff;
     padding: 20px;
     border-radius: 5px;
@@ -17,13 +17,13 @@ body {
     text-align: center;
 }
 
-.registration-container h2 {
+.login-container h2 {
     margin-bottom: 20px;
     color: #333;
 }
 
-.registration-container input[type="text"],
-.registration-container input[type="email"] {
+.login-container input[type="text"],
+.login-container input[type="password"] {
     width: 100%;
     padding: 10px;
     margin-bottom: 15px;
@@ -32,7 +32,7 @@ body {
     box-sizing: border-box;
 }
 
-.registration-container input[type="submit"] {
+.login-container input[type="submit"] {
     width: 100%;
     background-color: #007bff;
     color: #fff;
@@ -43,6 +43,6 @@ body {
     transition: background-color 0.3s;
 }
 
-.registration-container input[type="submit"]:hover {
+.login-container input[type="submit"]:hover {
     background-color: #0056b3;
 }
