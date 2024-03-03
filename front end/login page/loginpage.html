@@ -1,1 +1,98 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Page</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to right, #11998e, #38ef7d);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background-color: rgba(255, 255, 255, 0.95);
+      border-radius: 15px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+      padding: 40px;
+      width: 400px;
+      max-width: 90%;
+      text-align: center;
+      transition: transform 0.3s ease;
+    }
+    .container:hover {
+      transform: scale(1.05);
+    }
+    h2 {
+      margin-bottom: 30px;
+      color: #333;
+      font-size: 28px;
+    }
+    input[type="text"],
+    input[type="password"],
+    input[type="submit"] {
+      width: calc(100% - 20px);
+      padding: 15px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 25px;
+      box-sizing: border-box;
+      font-size: 16px;
+      transition: box-shadow 0.3s ease;
+    }
+    input[type="text"],
+    input[type="password"] {
+      background-color: #f2f2f2;
+    }
+    input[type="text"]:focus,
+    input[type="password"]:focus {
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    }
+    input[type="submit"] {
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+    input[type="submit"]:hover {
+      background-color: #45a049;
+    }
+    .continue-with-google {
+      background-color: #DB4437;
+      color: white;
+      border: none;
+      border-radius: 25px;
+      padding: 15px 0;
+      margin-top: 20px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      width: 100%;
+      max-width: 300px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      transition: background-color 0.3s ease;
+    }
+    .continue-with-google:hover {
+      background-color: #C13505;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Login</h2>
+    <form action="#">
+      <input type="text" name="email" placeholder="Email">
+      <input type="password" name="password" placeholder="Password">
+      <input type="submit" value="Login">
+    </form>
+    <a href="https://accounts.google.com/ServiceLogin?service=CPanel" class="continue-with-google">Continue with Google</a>
+  </div>
+</body>
+</html>
