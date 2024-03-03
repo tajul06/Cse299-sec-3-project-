@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="dashboard.css">
+  <script>
+    function toggleCourses() {
+      var courseList = document.querySelector('.course-list');
+      courseList.style.display = (courseList.style.display === 'none' || courseList.style.display === '') ? 'block' : 'none';
+    }
+  </script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Welcome to Your Dashboard</h1>
+    </header>
+
+    <div class="section-container">
+      <section class="teach-section">
+        <h2>Teacher Information</h2>
+        <div class="teach-info">
+          <p>Name: Dr. Samantha Green</p>
+          <p>Teacher ID: 987654</p>
+          <p>Email: samantha.green@university.edu</p>
+          <!-- Add more teacher information as needed -->
+        </div>
+      </section>
+    </div>
+
+    <div class="section-container">
+      <section class="courses-section">
+        <h2>List of Courses</h2>
+        <ul class="course-list">
+          <li><a href="course1.html">Course 1</a></li>
+          <li><a href="course2.html">Course 2</a></li>
+          <li><a href="course3.html">Course 3</a></li>
+          <!-- Add more courses as needed -->
+        </ul>
+        <button onclick="toggleCourses()">Toggle Courses</button>
+      </section>
+    </div>
+
+  </div>
+</body>
+</html>
