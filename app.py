@@ -1,4 +1,5 @@
 import os
+import re
 from flask import Flask, flash, request ,url_for, redirect ,session , render_template
 
 from google.oauth2.credentials import Credentials
@@ -7,7 +8,11 @@ from googleapiclient.discovery import build
 
 import pandas as pd
 
-import io
+import gspread
+
+from oauth2client.service_account import ServiceAccountCredentials
+
+
 
 from authlib.integrations.flask_client import OAuth
 
@@ -16,7 +21,9 @@ from pymongo import MongoClient
 from bson import ObjectId
 
 import requests
+import gspread
 
+import re
 
 
 app = Flask(__name__)
@@ -45,10 +52,16 @@ google =oauth.register(
      
 )
 
-# Google Drive API config
-GOOGLE_DRIVE_API_URL = 'https://www.googleapis.com/upload/drive/v3/files'
-GOOGLE_DRIVE_API_TOKEN = '1//04GC6t9U38b9wCgYIARAAGAQSNwF-L9IrYYywCHrNZ2bbS095Dnk8CYuIyk7hzp26f3C3pl0Fkv-LKN0-rQC9hwM0XwK2N28HapM'  # Replace with your actual Google Drive API token
 
+
+def extract_google_sheets_key(google_sheets_link):
+    pattern = re.compile(r'^https?://docs.google.com/spreadsheets/d/([a-zA-Z0-9-_]+)')
+    match = pattern.match(google_sheets_link)
+    if match:
+        return match.group(1)
+    else:
+        return None
+    
 @app.route('/')
 def home():
     email = dict(session).get('email', None)
@@ -102,97 +115,59 @@ def dashboard():
 
 
 
-@app.route('/course/<course_id>')
+
+
+
+@app.route('/course/<course_id>', methods=['GET', 'POST'])
 def course_dashboard(course_id):
     email = dict(session).get('email', None)
     if email:
-       
+        if request.method == 'GET':
+            course = courses_collection.find_one({'_id': ObjectId(course_id)})
+            if course:
+                return render_template('course_dashboard.html', email=email, course=course)
+        elif request.method == 'POST':
+            google_sheets_link = request.form.get('google_sheets_link')
+            if not google_sheets_link:
+                flash('Please provide a valid Google Sheets link')
+                return redirect(request.url)
+            sheets_key = extract_google_sheets_key(google_sheets_link)
+            if not sheets_key:
+                flash('Please provide a valid Google Sheets link')
+                return redirect(request.url)
+            scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+            credentials = ServiceAccountCredentials.from_json_keyfile_name('creds.json', scope)
+            client = gspread.authorize(credentials)
+            try:
+                doc = client.open_by_key(sheets_key)
+                worksheet = doc.sheet1
+                data = worksheet.get_all_values()
+                students_data = []
+                for row in data:
+                    name, student_id, student_email = row
+                    students_data.append({'name': name, 'student_id': student_id, 'email': student_email})
+                students_collection.insert_many(students_data)
+                flash('Students uploaded successfully')
+                return redirect('/course/' + course_id)
+            except Exception as e:
+                flash('An error occurred while processing the Google Sheets data: {}'.format(str(e)))
+                return redirect(request.url)
+    return redirect('/dashboard')
+
+@app.route('/students/<course_id>')
+def get_students(course_id):
+    email = dict(session).get('email', None)
+    if email:
         course = courses_collection.find_one({'_id': ObjectId(course_id)})
         if course:
-            return render_template('course_dashboard.html', email=email, course=course)
+            students = students_collection.find({'course_id': ObjectId(course_id)})
+            return render_template('students_list.html', email=email, course=course, students=students)
     return redirect('/dashboard')
 
 
-@app.route('/add_course', methods=['POST'])
-def add_course():
-    email = dict(session).get('email', None)
-    if email:
-        name = request.form.get('name')
-        description = request.form.get('description')
-        start_date = request.form.get('start_date')
-        end_date = request.form.get('end_date')
-        # Add the course to MongoDB
-        course_id = courses_collection.insert_one({'name': name, 'description': description, 'start_date': start_date, 'end_date': end_date, 'teacher_email': email}).inserted_id
-        return redirect(f'/course/{course_id}')
-    return redirect('/dashboard')
 
 
-@app.route('/edit_course/<course_id>', methods=['POST'])
-def edit_course(course_id):
-    email = dict(session).get('email', None)
-    if email:
-        name = request.form.get('name')
-        description = request.form.get('description')
-        start_date = request.form.get('start_date')
-        end_date = request.form.get('end_date')
-        # Update the course in MongoDB
-        courses_collection.update_one({'_id': ObjectId(course_id)}, {'$set': {'name': name, 'description': description, 'start_date': start_date, 'end_date': end_date}})
-        return redirect(f'/course/{course_id}')
-    return redirect('/')
 
-
-@app.route('/delete_course/<course_id>')
-def delete_course(course_id):
-    email = dict(session).get('email', None)
-    if email:
-        # Delete the course from MongoDB
-        courses_collection.delete_one({'_id': ObjectId(course_id)})
-    return redirect('/dashboard')
-
-
-@app.route('/upload_students/<course_id>', methods=['POST'])
-def upload_students(course_id):
-    email = dict(session).get('email', None)
-    if email:
-        # Check if the request contains a file
-        if 'file' not in request.files:
-            flash('No file part')
-            return redirect(request.url)
-        
-        file = request.files['file']
-        
-        # Check if file is uploaded
-        if file.filename == '':
-            flash('No selected file')
-            return redirect(request.url)
-        
-        if file:
-            # Save the file temporarily
-            file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-            file.save(file_path)
-            
-            # Upload the file to Google Drive
-            try:
-                headers = {
-                    'Authorization': f'Bearer {GOOGLE_DRIVE_API_TOKEN}',
-                    'Content-Type': 'application/json',
-                }
-                params = {
-                    'uploadType': 'media',
-                    'name': file.filename,
-                }
-                response = requests.post(GOOGLE_DRIVE_API_URL, headers=headers, params=params, data=file.stream)
-                response.raise_for_status()
-                flash('File uploaded successfully')
-            except Exception as e:
-                flash(f'Failed to upload file: {e}')
-            
-            
-            os.remove(file_path)
-            
-            return redirect('/course/' + course_id)
-    
-    return redirect('/dashboard')
 
 @app.route('/create_assessment/<course_id>')
 def create_assessment(course_id):
