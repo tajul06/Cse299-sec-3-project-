@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Dashboard</title>
+</head>
+<body>
+    <h1>Course Dashboard</h1>
+    <h2>Welcome, {{ email }}</h2>
+    <h3>Course: {{ course.name }}</h3>
+    <p>Description: {{ course.description }}</p>
+    <p>Start Date: {{ course.start_date }}</p>
+    <p>End Date: {{ course.end_date }}</p>
+
+    <h3>Options:</h3>
+    <ul>
+        <li><a href="/upload_students/{{ course._id }}">Upload Students</a></li>
+        <li><a href="/create_assessment/{{ course._id }}">Create Assessment</a></li>
+    </ul>
+
+    <a href="/dashboard">Back to Dashboard</a>
+    <a href="/logout">Logout</a>
+</body>
+</html
