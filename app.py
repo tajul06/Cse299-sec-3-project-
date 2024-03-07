@@ -385,6 +385,7 @@ def upload_rubric(assessment_id):
 
 
 
+
 def generate_google_form(assessment_id):
     # Initialize credentials
     credentials = service_account.Credentials.from_service_account_file(
@@ -409,29 +410,34 @@ def generate_google_form(assessment_id):
     form_payload = {
         "title": f"Assessment Form - {assessment_id}",
         "description": "Please complete this assessment form.",
-        "items": []
+        "questions": []
     }
 
     # Add each question to the form payload
-    for idx, question in enumerate(questions, start=1):
-        form_payload['items'].append({
+    for idx, question_text in enumerate(questions, start=1):
+        question = {
+            "question": f"Question {idx}: {question_text}",
             "type": "TEXT",
-            "title": f"Question {idx}: {question}",
-            "isRequired": True
-        })
+            "required": True
+        }
+        form_payload['questions'].append(question)
 
-    # Call the Google Forms API to create the form
-    response = service.forms().create(body=form_payload).execute()
+    try:
+        # Call the Google Forms API to create the form
+        response = service.forms().create(body=form_payload).execute()
 
-    # Extract the form URL from the response
-    form_url = response.get('link', None)
+        # Extract the form URL from the response
+        form_url = response.get('link', None)
 
-    # Store the form URL in the assessment document
-    if form_url:
-        assessment['form_link'] = form_url
-        questions_collection.update_one({'_id': ObjectId(assessment_id)}, {'$set': assessment})
+        # Store the form URL in the assessment document
+        if form_url:
+            assessment['form_link'] = form_url
+            questions_collection.update_one({'_id': ObjectId(assessment_id)}, {'$set': assessment})
 
-    return form_url
+        return form_url
+    except Exception as e:
+        print(f"Error creating Google Form: {e}")
+        return None
 
 
 def send_email(receiver_email, subject, body):
